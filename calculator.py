@@ -1,9 +1,9 @@
 import streamlit as st
 from google import genai
 
-# --- ページ設定 ---
+# --- ページ設定（犬専用タイトル！） ---
 st.set_page_config(
-    page_title="AI Pet Meal Planner 🐾",
+    page_title="AI Dog Meal Planner 🐶",
     layout="centered", 
     initial_sidebar_state="collapsed"
 )
@@ -12,15 +12,13 @@ st.set_page_config(
 api_key = st.secrets["GEMINI_API_KEY"]
 client = genai.Client(api_key=api_key)
 
-# --- ✨ 丸いトグルスイッチを採用したポップなカスタムCSS ✨ ---
+# --- ポップなカスタムCSS（犬らしい元気なオレンジ＆ブラウン系に微調整） ---
 st.markdown("""
 <style>
-/* フォントと全体の背景 */
 html, body, [data-testid="stAppViewContainer"] {
     font-family: 'Helvetica Neue', Arial, sans-serif;
     background-color: #fdfdfd;
 }
-/* メインタイトルのデザイン */
 .main-title {
     color: #ff823a;
     font-size: 3rem;
@@ -28,37 +26,12 @@ html, body, [data-testid="stAppViewContainer"] {
     font-weight: bold;
     margin-bottom: 0.5rem;
 }
-/* 入力フォームの丸み */
-.stSelectbox, .stNumberInput, .stNumberInput > div > div > input {
+.stSelectbox, .stNumberInput, .stCheckbox {
     background-color: #ffffff;
-    border-radius: 15px !important;
+    border-radius: 15px;
 }
-/* ✨ チェックボックスを丸いトグルスイッチ（ピル型）に変更 ✨ */
-.stCheckbox > label > div > span {
-    width: 48px;
-    height: 24px;
-    background-color: #cbd5e1; /* オフの色 */
-    border-radius: 24px !important; /* 丸みの指定 */
-}
-.stCheckbox > label > div[aria-checked="true"] > span {
-    background-color: #bc84ee !important; /* オン（紫色）の色 */
-}
-.stCheckbox > label > div > span::after {
-    content: "";
-    width: 20px;
-    height: 20px;
-    background-color: white;
-    border-radius: 50% !important;
-    top: 2px;
-    left: 2px;
-}
-.stCheckbox > label > div[aria-checked="true"] > span::after {
-    left: 26px !important;
-}
-
-/* 計算ボタンのデザイン */
 div.stButton > button {
-    background-color: #bc84ee !important;
+    background-color: #ff823a !important; /* ボタンを元気な犬カラーのオレンジに！ */
     color: white !important;
     border-radius: 30px !important;
     border: none !important;
@@ -66,9 +39,12 @@ div.stButton > button {
     font-size: 1.2rem !important;
     font-weight: bold !important;
     width: 100%;
-    box-shadow: 0 4px 15px rgba(188, 132, 238, 0.4);
+    box-shadow: 0 4px 15px rgba(255, 130, 58, 0.4);
 }
-/* サイドバーの非表示 */
+/* トグルスイッチのONカラーもオレンジに変更 */
+.stCheckbox > label > div[aria-checked="true"] > span {
+    background-color: #ff823a !important;
+}
 [data-testid="stSidebar"] {
     display: none;
 }
@@ -76,44 +52,41 @@ div.stButton > button {
 """, unsafe_allow_html=True)
 
 # --- ヘッダーエリア ---
-st.markdown('<p class="main-title">🐾 AI Pet Meal Planner</p>', unsafe_allow_html=True)
-st.markdown('<p style="text-align: center; color: #64748b;">AIと一緒に、うちの子にぴったりのごはん量を見つけよう！</p>', unsafe_allow_html=True)
+st.markdown('<p class="main-title">🐶 AI Dog Meal Planner</p>', unsafe_allow_html=True)
+st.markdown('<p style="text-align: center; color: #64748b;">AIと一緒に、愛犬にぴったりのごはん量を見つけよう！</p>', unsafe_allow_html=True)
 
 st.write("---")
 
-# --- 基本情報入力セクション ---
-col1, col2, col3 = st.columns(3)
+# --- 1段目：基本情報 2列にスッキリ！（種類をなくした分、横幅に余裕ができました） ---
+col1, col2 = st.columns(2)
 with col1:
-    pet_type = st.selectbox("種類 🐶🐱", ["犬", "猫"])
-with col2:
     weight = st.number_input("体重 (kg) ⚖️", min_value=0.1, value=5.0, step=0.1)
-with col3:
-    activity_level = st.selectbox("活動量 🏃", ["低い", "普通", "高い"])
+with col2:
+    activity_level = st.selectbox("活動量 🏃", ["低い（のんびり・お散歩少なめ）", "普通（標準的・毎日お散歩）", "高い（ドッグラン大好き・活動的）"])
 
-# --- 詳細情報入力セクション ---
+# --- 2段目：年齢 と 体の状態 2列 ---
 st.write("")
-col4, col5 = st.columns(2)
-with col4:
+col3, col4 = st.columns(2)
+with col3:
     age_group = st.selectbox(
         "年齢・ライフステージ 🎂", 
-        ["生後4ヶ月未満（幼齢期） 🍼", "生後4ヶ月〜1歳まで（成長期） 🌱", "成犬・成猫（1歳〜） 🐕🐈", "シニア（7歳〜） 👴👵", "ハイシニア（11歳〜） 🌟"]
+        ["生後4ヶ月未満（子犬・幼齢期） 🍼", "生後4ヶ月〜1歳まで（子犬・成長期） 🌱", "成犬（1歳〜） 🐕", "シニア（7歳〜） 🧓", "ハイシニア（11歳〜） 🌟"]
     )
-with col5:
+with col4:
     pet_status = st.selectbox(
         "体の状態 🩺", 
-        ["手術していない（未手術）", "手術している（避妊・去勢済み）", "妊娠前半 🤰", "妊娠後半 🔥🤰", "授乳中 🍼✨"]
+        ["手術していない（未去勢・未避妊）", "手術している（去勢・避妊済み）", "妊娠前半（交配〜5週目頃） 🤰", "妊娠後半（5週目〜出産まで） 🔥🤰", "授乳中（子育て中！） 🍼✨"]
     )
 
-# --- ごはんのカロリー ---
+# --- 3段目：ドッグフードのカロリー ---
 st.write("")
 food_calories = st.number_input(
-    "フードのカロリー (100gあたり/kcal) 🍖", 
+    "ドッグフードのカロリー (100gあたり/kcal) 🍖", 
     min_value=100, max_value=600, value=350, step=5
 )
 
-# --- ✨ 新機能：おやつ入力セクション ✨ ---
+# --- おやつ入力セクション ---
 st.write("")
-# 丸いトグルスイッチがONの時だけ展開されます
 has_snacks = st.checkbox("今日はおやつをあげる？ 🦴")
 
 snack_cal_per_100g = 0
@@ -135,40 +108,39 @@ if has_snacks:
 
 # --- メモエリア ---
 st.write("")
-memo = st.text_input("AIへのメッセージ 💬", placeholder="例：食欲がすごい、少しダイエット中など")
+memo = st.text_input("AI獣医へのメッセージ 💬", placeholder="例：最近少し太り気味、トイプードルです、など")
 
 # --- 計算・AIアドバイス実行ボタン ---
 st.write("")
 if st.button("AIに相談して計算する ✨"):
-    # AIへの依頼文（おやつのカロリー、グラム数を含む）
+    # AIへの依頼文（犬専用の栄養学をベースにするよう指示！）
     prompt = f"""
-あなたは親切な獣医です。以下の情報を元に、{pet_type}の1日あたりの推定給餌量(グラム)を計算してください。
+あなたは親切な「犬専門の獣医」です。以下の情報を元に、愛犬の1日あたりの推定給餌量(グラム)を計算してください。
 
 情報：
-- ペットの種類: {pet_type}
+- 対象: 犬
 - 体重: {weight}kg
 - 活動量: {activity_level}
 - 年齢・ライフステージ: {age_group}
 - 体の状態: {pet_status}
-- フードのカロリー: 100gあたり {food_calories} kcal
+- ドッグフードのカロリー: 100gあたり {food_calories} kcal
 - 今日あげるおやつのカロリー: 100gあたり {snack_cal_per_100g} kcal
 - 今日あげるおやつの量: {snack_grams} g
 - 飼い主からのメモ: {memo}
 
 計算のステップ：
-1. おやつの総摂取カロリーをまず計算してください。
-2. ペットの1日の総必要エネルギー（DER）を算出してください。
-3. 総必要エネルギーからおやつ分のカロリーを差し引いてください。
-4. 残りのエネルギーを「フード（100gあたり{food_calories}kcal）」で摂取する場合の、1日のグラム数を算出して提示してください。
+1. 犬の犬種や体重を考慮し、犬の安静時エネルギー要求量（RER = 70 × 体重^0.75）をベースに、ライフステージや状態を掛け合わせた1日の総必要エネルギー（DER）を算出してください。
+2. 総必要エネルギーからおやつ分のカロリー（{snack_grams}g × {snack_cal_per_100g}kcal ÷ 100）を差し引いてください。
+3. 残りのエネルギーをドッグフード（100gあたり{food_calories}kcal）で割って、1日の正確なグラム数を算出してください。
 
 回答の構成：
-1. おやつ分を差し引いた、1日のごはんの量（グラム）を大きく提示。
-2. 計算の内訳を分かりやすく解説（おやつの総カロリー、ペットの総必要カロリー、そこから引き算した残りのごはんの量）。
-3. もしおやつのカロリーが1日の総カロリーの10%を超えていたら、健康のために優しく注意喚起してください。
-4. 飼い主さんとペットが幸せになれるようなポップな一言。
+1. おやつ分を差し引いた、1日のドッグフードの量（グラム）を大きく提示。
+2. 計算の内訳（愛犬の総必要カロリー、おやつ分のカロリー、残りのごはんの量）を分かりやすく解説。
+3. もしおやつのカロリーが1日の総カロリーの10%を超えていたら、犬の健康（肥満防止）のために優しく注意喚起してください。
+4. 愛犬と飼い主さんがハッピーになれるような、温かくポップな一言アドバイス。
 """
     
-    with st.spinner("おやつのカロリーを計算して引き算しています... 🧠🍪⚖️"):
+    with st.spinner("ワンちゃんのためにAIが猛スピードで計算中... 🧠🐕⚖️"):
         try:
             response = client.models.generate_content(
                 model="gemini-2.0-flash",
@@ -182,4 +154,4 @@ if st.button("AIに相談して計算する ✨"):
 
 # --- フッター ---
 st.write("---")
-st.caption("※この計算は目安です。体調に合わせて調整してあげてくださいね。 ...ワンッ！ニャンッ！✨")
+st.caption("※この計算は目安です。愛犬の体調に合わせて調整してあげてくださいね。 ...ワンッ！✨")
