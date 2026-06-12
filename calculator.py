@@ -3,7 +3,7 @@ from google import genai
 
 # --- ページ設定（犬専用タイトル！） ---
 st.set_page_config(
-    page_title="AI Dog Meal Planner 🐶",
+    page_title="🐶 わんこのごはん計 🐶",
     layout="centered", 
     initial_sidebar_state="collapsed"
 )
@@ -52,7 +52,7 @@ div.stButton > button {
 """, unsafe_allow_html=True)
 
 # --- ヘッダーエリア ---
-st.markdown('<p class="main-title">🐶 AI Dog Meal Planner</p>', unsafe_allow_html=True)
+st.markdown('<p class="main-title">🐶 わんこのごはん計 🐶</p>', unsafe_allow_html=True)
 st.markdown('<p style="text-align: center; color: #64748b;">AIと一緒に、愛犬にぴったりのごはん量を見つけよう！</p>', unsafe_allow_html=True)
 
 st.write("---")
