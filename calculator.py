@@ -4,8 +4,8 @@ from google import genai
 # --- ページ設定 ---
 st.set_page_config(
     page_title="AI Pet Meal Planner 🐾",
-    layout="centered", # 中央寄せ
-    initial_sidebar_state="collapsed" # サイドバーは最初から閉じる
+    layout="centered", 
+    initial_sidebar_state="collapsed"
 )
 
 # --- 魔法の隠し金庫（Secrets）からAPIキーを読み込む ---
@@ -26,7 +26,7 @@ html, body, [data-testid="stAppViewContainer"] {
     font-weight: bold;
     margin-bottom: 0.5rem;
 }
-.stSelectbox, .stNumberInput {
+.stSelectbox, .stNumberInput, .stCheckbox {
     background-color: #ffffff;
     border-radius: 15px;
 }
@@ -53,67 +53,59 @@ st.markdown('<p style="text-align: center; color: #64748b;">AIと一緒に、う
 
 st.write("---")
 
-# --- 入力エリア（1段目：基本情報 3列） ---
+# --- 1段目：基本情報 3列 ---
 col1, col2, col3 = st.columns(3)
-
 with col1:
     pet_type = st.selectbox("種類 🐶🐱", ["犬", "猫"])
-
 with col2:
     weight = st.number_input("体重 (kg) ⚖️", min_value=0.1, value=5.0, step=0.1)
-
 with col3:
     activity_level = st.selectbox("活動量 🏃", ["低い", "普通", "高い"])
 
-# --- 入力エリア（2段目：年齢 と 体の状態 2列） ---
+# --- 2段目：年齢 と 体の状態 2列 ---
 st.write("")
 col4, col5 = st.columns(2)
-
 with col4:
     age_group = st.selectbox(
         "年齢・ライフステージ 🎂", 
-        [
-            "生後4ヶ月未満（幼齢期） 🍼", 
-            "生後4ヶ月〜1歳まで（成長期） 🌱", 
-            "成犬・成猫（1歳〜） 🐕🐈", 
-            "シニア（7歳〜） 👴👵", 
-            "ハイシニア（11歳〜） 🌟"
-        ]
+        ["生後4ヶ月未満（幼齢期） 🍼", "生後4ヶ月〜1歳まで（成長期） 🌱", "成犬・成猫（1歳〜） 🐕🐈", "シニア（7歳〜） 👴👵", "ハイシニア（11歳〜） 🌟"]
     )
-
 with col5:
     pet_status = st.selectbox(
         "体の状態 🩺", 
-        [
-            "手術していない（未手術）", 
-            "手術している（避妊・去勢済み）",
-            "妊娠前半（交配〜4・5週目頃：いつも通りの時期） 🤰",
-            "妊娠後半（5・6週目〜出産まで：赤ちゃん急成長期！） 🔥🤰",
-            "授乳中（子育て中！） 🍼✨"
-        ]
+        ["手術していない（未手術）", "手術している（避妊・去勢済み）", "妊娠前半 🤰", "妊娠後半 🔥🤰", "授乳中 🍼✨"]
     )
 
-# --- 入力エリア（3段目：ごはんのカロリー） ---
+# --- 3段目：ごはんのカロリー ---
 st.write("")
 food_calories = st.number_input(
-    "今あげているフードのカロリー (100gあたり/kcal) 🍖", 
-    min_value=100, 
-    max_value=600, 
-    value=350, 
-    step=5
+    "フードのカロリー (100gあたり/kcal) 🍖", 
+    min_value=100, max_value=600, value=350, step=5
 )
+
+# --- ✨ 新機能：おやつ入力セクション ✨ ---
+st.write("")
+has_snacks = st.checkbox("今日はおやつをあげる？ 🦴")
+
+snack_kcal = 0
+if has_snacks:
+    # チェックを入れた時だけ表示される特別なエリア
+    st.info("おやつのカロリーを入力してね。AIがその分をごはんから差し引くよ！")
+    snack_kcal = st.number_input(
+        "今日あげるおやつの合計カロリー (kcal) 🍪", 
+        min_value=0, max_value=500, value=20, step=1
+    )
 
 # --- 追加情報エリア ---
 st.write("")
-memo = st.text_input("AIへのメッセージ（例：最近少し太り気味、食欲旺盛！） 💬", placeholder="何か気になることがあれば教えてね")
+memo = st.text_input("AIへのメッセージ 💬", placeholder="例：食欲がすごい、少しダイエット中など")
 
 # --- 計算・AIアドバイス実行ボタン ---
 st.write("")
 if st.button("AIに相談して計算する ✨"):
-    # AIへの依頼文（インデントを綺麗に左に揃えてエラーを解消しました！）
+    # AIへの依頼文（おやつ情報もガッツリ追加！）
     prompt = f"""
-あなたは親切な獣医です。以下の情報を元に、{pet_type}の1日あたりの推定給餌量(グラム)を計算し、
-飼い主さんへ明るくポップなアドバイスをしてください。
+あなたは親切な獣医です。以下の情報を元に、{pet_type}の1日あたりの推定給餌量(グラム)を計算してください。
 
 情報：
 - ペットの種類: {pet_type}
@@ -121,35 +113,31 @@ if st.button("AIに相談して計算する ✨"):
 - 活動量: {activity_level}
 - 年齢・ライフステージ: {age_group}
 - 体の状態: {pet_status}
-- 与えているフードのカロリー: 100gあたり {food_calories} kcal
+- フードのカロリー: 100gあたり {food_calories} kcal
+- 今日あげるおやつの合計カロリー: {snack_kcal} kcal
 - 飼い主からのメモ: {memo}
 
-計算の考慮事項（獣医学の基準）：
-- ライフステージと「体の状態」を組み合わせてエネルギー要求量（DER）を厳密に計算してください。
-- 特に妊娠期の違いを厳密に区別してください：
-  * 「妊娠前半」：胎児はまだ小さいため、必要なエネルギーは通常の未手術成犬/成猫とほぼ同じです（増やしすぎ注意）。
-  * 「妊娠後半」：胎児が急激に成長するため、エネルギー要求量は通常の1.5〜2倍近くに跳ね上がります。ただし胃が圧迫されるため、食事を小分けにするアドバイスも必須です。
-  * 「授乳中」：年間で最もエネルギーを消費する時期です。通常の2〜3倍以上のカロリーが必要になるため、給餌量を大幅に増やしてください。
-- 避妊・去勢済みの場合は太りやすいため、控えめに補正してください。
+計算のステップ：
+1. ペットのDER（1日の総必要エネルギー）を算出してください。
+2. 総必要エネルギーから「おやつのカロリー（{snack_kcal}kcal）」を差し引いてください。
+3. 残りのエネルギーを「フード（100gあたり{food_calories}kcal）」で摂取する場合の、1日のグラム数を算出して提示してください。
 
 回答の構成：
-1. すべての条件を考慮した、推定される1日のごはんの量（グラム）を大きく提示
-2. そのライフステージや細かな体の状態（{pet_status}）に応じたカロリー計算の理由を優しく解説
-3. 胃の圧迫への配慮（妊娠後半の場合など）や、飼い主さんとペットが幸せになれるような一言アドバイス
+1. おやつ分を差し引いた、1日のごはんの量（グラム）を大きく提示。
+2. 計算の内訳を優しく解説（総カロリー、おやつ分、残りのごはん分）。
+3. もしおやつが総カロリーの10%を超えていたら、健康のために優しく注意喚起してください。
+4. 飼い主さんとペットが幸せになれるようなポップな一言。
 """
     
-    with st.spinner("AIが一生懸命考えています... 🧠🎨"):
+    with st.spinner("おやつ分を差し引きながらAIが計算しています... 🧠🍪"):
         try:
             response = client.models.generate_content(
                 model="gemini-2.0-flash",
                 contents=prompt
             )
-            
-            # 結果表示
             st.success("### 🥗 AI獣医からの回答")
             st.markdown(response.text)
-            st.balloons() # お祝いの風船を飛ばす！
-            
+            st.balloons()
         except Exception as e:
             st.error(f"エラーが発生しました：{e}")
 
