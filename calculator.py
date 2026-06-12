@@ -12,13 +12,15 @@ st.set_page_config(
 api_key = st.secrets["GEMINI_API_KEY"]
 client = genai.Client(api_key=api_key)
 
-# --- ポップなカスタムCSS ---
+# --- ✨ 丸いトグルスイッチを採用したポップなカスタムCSS ✨ ---
 st.markdown("""
 <style>
+/* フォントと全体の背景 */
 html, body, [data-testid="stAppViewContainer"] {
     font-family: 'Helvetica Neue', Arial, sans-serif;
     background-color: #fdfdfd;
 }
+/* メインタイトルのデザイン */
 .main-title {
     color: #ff823a;
     font-size: 3rem;
@@ -26,10 +28,35 @@ html, body, [data-testid="stAppViewContainer"] {
     font-weight: bold;
     margin-bottom: 0.5rem;
 }
-.stSelectbox, .stNumberInput, .stCheckbox {
+/* 入力フォームの丸み */
+.stSelectbox, .stNumberInput, .stNumberInput > div > div > input {
     background-color: #ffffff;
-    border-radius: 15px;
+    border-radius: 15px !important;
 }
+/* ✨ チェックボックスを丸いトグルスイッチ（ピル型）に変更 ✨ */
+.stCheckbox > label > div > span {
+    width: 48px;
+    height: 24px;
+    background-color: #cbd5e1; /* オフの色 */
+    border-radius: 24px !important; /* 丸みの指定 */
+}
+.stCheckbox > label > div[aria-checked="true"] > span {
+    background-color: #bc84ee !important; /* オン（紫色）の色 */
+}
+.stCheckbox > label > div > span::after {
+    content: "";
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border-radius: 50% !important;
+    top: 2px;
+    left: 2px;
+}
+.stCheckbox > label > div[aria-checked="true"] > span::after {
+    left: 26px !important;
+}
+
+/* 計算ボタンのデザイン */
 div.stButton > button {
     background-color: #bc84ee !important;
     color: white !important;
@@ -41,6 +68,7 @@ div.stButton > button {
     width: 100%;
     box-shadow: 0 4px 15px rgba(188, 132, 238, 0.4);
 }
+/* サイドバーの非表示 */
 [data-testid="stSidebar"] {
     display: none;
 }
@@ -53,7 +81,7 @@ st.markdown('<p style="text-align: center; color: #64748b;">AIと一緒に、う
 
 st.write("---")
 
-# --- 1段目：基本情報 3列 ---
+# --- 基本情報入力セクション ---
 col1, col2, col3 = st.columns(3)
 with col1:
     pet_type = st.selectbox("種類 🐶🐱", ["犬", "猫"])
@@ -62,7 +90,7 @@ with col2:
 with col3:
     activity_level = st.selectbox("活動量 🏃", ["低い", "普通", "高い"])
 
-# --- 2段目：年齢 と 体の状態 2列 ---
+# --- 詳細情報入力セクション ---
 st.write("")
 col4, col5 = st.columns(2)
 with col4:
@@ -76,15 +104,16 @@ with col5:
         ["手術していない（未手術）", "手術している（避妊・去勢済み）", "妊娠前半 🤰", "妊娠後半 🔥🤰", "授乳中 🍼✨"]
     )
 
-# --- 3段目：ごはんのカロリー ---
+# --- ごはんのカロリー ---
 st.write("")
 food_calories = st.number_input(
     "フードのカロリー (100gあたり/kcal) 🍖", 
     min_value=100, max_value=600, value=350, step=5
 )
 
-# --- ✨ 新機能：おやつ入力セクション（2つのボックスに進化！） ✨ ---
+# --- ✨ 新機能：おやつ入力セクション ✨ ---
 st.write("")
+# 丸いトグルスイッチがONの時だけ展開されます
 has_snacks = st.checkbox("今日はおやつをあげる？ 🦴")
 
 snack_cal_per_100g = 0
@@ -92,7 +121,6 @@ snack_grams = 0
 
 if has_snacks:
     st.info("おやつのパッケージの数字と、あげる量を入力してね！")
-    # 2つの列に分けて横並びにスッキリ配置
     scol1, scol2 = st.columns(2)
     with scol1:
         snack_cal_per_100g = st.number_input(
@@ -105,14 +133,14 @@ if has_snacks:
             min_value=1, max_value=200, value=10, step=1
         )
 
-# --- 追加情報エリア ---
+# --- メモエリア ---
 st.write("")
 memo = st.text_input("AIへのメッセージ 💬", placeholder="例：食欲がすごい、少しダイエット中など")
 
 # --- 計算・AIアドバイス実行ボタン ---
 st.write("")
 if st.button("AIに相談して計算する ✨"):
-    # AIへの依頼文（おやつの100gあたりカロリーとグラム数を渡して、AIに掛け算と引き算を両方やらせます！）
+    # AIへの依頼文（おやつのカロリー、グラム数を含む）
     prompt = f"""
 あなたは親切な獣医です。以下の情報を元に、{pet_type}の1日あたりの推定給餌量(グラム)を計算してください。
 
@@ -127,10 +155,10 @@ if st.button("AIに相談して計算する ✨"):
 - 今日あげるおやつの量: {snack_grams} g
 - 飼い主からのメモ: {memo}
 
-計算のステップ（重要）：
-1. おやつの摂取カロリーをまず計算してください。（計算式: おやつの量({snack_grams}g) × (100gあたりのカロリー({snack_cal_per_100g}kcal) ÷ 100)）
+計算のステップ：
+1. おやつの総摂取カロリーをまず計算してください。
 2. ペットの1日の総必要エネルギー（DER）を算出してください。
-3. 総必要エネルギーから、ステップ1で出したおやつ分のカロリーを差し引いてください。
+3. 総必要エネルギーからおやつ分のカロリーを差し引いてください。
 4. 残りのエネルギーを「フード（100gあたり{food_calories}kcal）」で摂取する場合の、1日のグラム数を算出して提示してください。
 
 回答の構成：
@@ -154,4 +182,4 @@ if st.button("AIに相談して計算する ✨"):
 
 # --- フッター ---
 st.write("---")
-st.caption("※この計算は目安です。体調に合わせて調整してあげてくださいね。")
+st.caption("※この計算は目安です。体調に合わせて調整してあげてくださいね。 ...ワンッ！ニャンッ！✨")
